@@ -1,5 +1,5 @@
-[x] connection with smartcontract
-[x] performing of basic smart contract functions
-[x] creation of accounts
-[x] performing advanced smart contract functions like transfer,approve and transferFrom
-[] storage of accounts in the database
+[x] connection with smartcontract\
+[x] performing of basic smart contract functions\
+[x] creation of accounts\
+[x] performing advanced smart contract functions like transfer,approve and transferFrom\
+[] storage of accounts in the database\
