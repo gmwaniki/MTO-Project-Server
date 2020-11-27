@@ -8,8 +8,14 @@ let Token = new ProjectToken();
 // }
 // totalSupply();
 
-async function transfer() {
-  let transfer = await Token.transfer(0, 1, 1000);
+async function transfer(System, Mwaniki, amount) {
+  let transfer = await Token.transfer(System, Mwaniki, amount);
   console.log(transfer);
 }
-transfer();
+transfer(2, 0, 1000);
+
+// async function balance() {
+//   let balance = await Token.accountbalance(5);
+//   console.log(balance);
+// }
+// balance();

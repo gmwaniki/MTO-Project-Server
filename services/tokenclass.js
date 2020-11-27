@@ -35,7 +35,8 @@ class ProjectToken {
     let addressinfo = await this.accounts(index);
     let address = addressinfo.address;
 
-    let balance = await contractinteraction.getBalanceOf(address);
+    let accountBalance = await contractinteraction.getBalanceOf(address);
+    let balance = await web3.utils.fromWei(accountBalance, "ether");
     return { balance: balance, address: address };
   }
 
