@@ -4,13 +4,14 @@
   "description": "[x] connection with smartcontract [x] performing of basic smart contract functions [x] creation of accounts [x] performing advanced smart contract functions like transfer,approve and transferFrom [] storage of accounts in the database",
   "main": "index.js",
   "dependencies": {
+    "@opengsn/gsn": "^2.0.1",
     "@truffle/hdwallet-provider": "^1.2.0",
     "dotenv": "^8.2.0",
     "ethereumjs-tx": "^2.1.2",
     "express": "^4.17.1",
+    "pg": "^8.5.1",
     "pify": "^5.0.0",
-    "web3": "^1.3.0",
-    "@opengsn/gsn": "^2.0.1"
+    "web3": "^1.3.0"
   },
   "devDependencies": {
     "nodemon": "^2.0.6"

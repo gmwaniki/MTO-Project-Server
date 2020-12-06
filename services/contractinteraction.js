@@ -118,7 +118,7 @@ async function contractinfo(senderindex, receiverindex) {
   //     .call();
   //   console.log(balance);
 }
-contractinfo(0, 2);
+// contractinfo(0, 2);
 
 module.exports = {
   getTotalTokenSupply,
