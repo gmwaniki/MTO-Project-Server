@@ -5,11 +5,14 @@
 const allroutes = require("./routes/routing");
 
 const express = require("express");
+const cors = require("cors");
 
 const app = express();
+app.use(cors());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
-app.use("/", allroutes);
+
+app.use("/", cors(), allroutes);
 
 // const { Pool } = require("pg");
 
@@ -53,6 +56,6 @@ app.use("/", allroutes);
 //   }
 // });
 
-app.listen(3535, () => {
-  console.log("listening on port 3535");
+app.listen(3636, () => {
+  console.log("listening on port 3636");
 });
