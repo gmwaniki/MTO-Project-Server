@@ -2,59 +2,42 @@
 
 // let Token = new ProjectToken();
 
-const allroutes = require("./routes/routing");
-
 const express = require("express");
+const app = express();
+const session = require("express-session");
+const pgSession = require("connect-pg-simple")(session);
+const { Pool } = require("pg");
+const pool = new Pool({
+  user: "e1f",
+  host: "localhost",
+  database: "myproject",
+  password: "e1f",
+  port: 5432,
+});
+
 const cors = require("cors");
 
-const app = express();
-app.use(cors());
+app.use(
+  session({
+    store: new pgSession({
+      pool: pool,
+    }),
+    name: "userscookie",
+    secret: "whoami",
+    saveUninitialized: false,
+
+    cookie: {
+      maxAge: 1000 * 60 * 60 * 24,
+    },
+    resave: false,
+  })
+);
+app.use(cors({ credentials: true, origin: "http://localhost:3000" }));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
-app.use("/", cors(), allroutes);
-
-// const { Pool } = require("pg");
-
-// const pool = new Pool({
-//   user: "e1f",
-//   host: "localhost",
-//   database: "myproject",
-//   password: "e1f",
-//   port: 5432,
-// });
-// // pool.connect((err, client, done) => {
-// //   if (err) {
-// //     console.log(error);
-// //   } else {
-// //     console.log("connected to db");
-// //     pool
-// //       .query("SELECT * FROM test ")
-// //       .then((res) => {
-// //         console.log(res);
-// //       })
-// //       .catch((err) => {
-// //         console.log(err);
-// //       });
-// //   }
-// // });
-
-// app.get("/", (req, res) => {
-//   res.send("hello");
-// });
-
-// app.post("/signuporg", (req, res, next) => {
-//   let name = req.body.name;
-//   let email = req.body.email;
-//   try {
-//     pool.query(`INSERT INTO test (name,email) VALUES('${name}','${email}')`);
-//   } catch (error) {
-//     if (error) {
-//       next(error);
-//     }
-//     console.log(error);
-//   }
-// });
+const allroutes = require("./routes/routing");
+app.use("/", allroutes);
 
 app.listen(3636, () => {
   console.log("listening on port 3636");
