@@ -40,6 +40,9 @@ router.post("/issessionactive", (req, res) => {
   }
 });
 
+router.post("/checkid", authcontroller.checkid);
+router.post("/checkmobilenumber", authcontroller.checkmobilenumber);
+
 router.post("/logout", checksession, (req, res) => {
   req.session.destroy((err) => {
     if (err) {

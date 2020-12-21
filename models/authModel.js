@@ -120,8 +120,40 @@ const login = async ({ email, pass }) => {
   }
 };
 
+const checkid = async (idnumber) => {
+  const sql = "SELECT * FROM users where idnumber=$1";
+  const values = [idnumber];
+  try {
+    let res = await pool.query(sql, values);
+    if (res.rowCount >= 1) {
+      return 1;
+    } else {
+      return 0;
+    }
+  } catch (error) {
+    return -1;
+  }
+};
+const checkmobilenumber = async (mobilenumber) => {
+  const sql = "SELECT * FROM users where mobilenumber=$1";
+  const values = [mobilenumber];
+  try {
+    let res = await pool.query(sql, values);
+    console.log(res.rowCount);
+    if (res.rowCount >= 1) {
+      return 1;
+    } else {
+      return 0;
+    }
+  } catch (error) {
+    return -1;
+  }
+};
+
 module.exports = {
   signuporg,
   signupmerchant,
   login,
+  checkid,
+  checkmobilenumber,
 };
