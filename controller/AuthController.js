@@ -42,3 +42,5 @@ module.exports.checkmobilenumber = async (req, res) => {
   const result = await authmodel.checkmobilenumber(mobilenumber);
   res.status(200).json({ ismobilenumberpresent: result });
 };
+
+

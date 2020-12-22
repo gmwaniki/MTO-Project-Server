@@ -1,5 +1,6 @@
 const { Pool } = require("pg");
 const bcrypt = require("bcrypt");
+const { parsePhoneNumber } = require("libphonenumber-js");
 
 const pool = new Pool({
   user: "e1f",
@@ -15,7 +16,12 @@ const signuporg = async ({ role, name, email, pass, mobilenumber }) => {
   const salt = await bcrypt.genSalt();
   const hashedPassword = await bcrypt.hash(pass, salt);
 
-  const values = [role, name, email, hashedPassword, mobilenumber];
+  const internationalmobilenumber = parsePhoneNumber(
+    mobilenumber.toString(),
+    "KE"
+  ).number;
+
+  const values = [role, name, email, hashedPassword, internationalmobilenumber];
 
   try {
     const res = await pool.query(sql, values);
@@ -59,6 +65,10 @@ const signupmerchant = async ({
     "INSERT INTO users(role,firstname,lastname,storename,idnumber,email,password,mobilenumber) VALUES($1,$2,$3,$4,$5,$6,$7,$8) ";
   const salt = await bcrypt.genSalt();
   const hashedPassword = await bcrypt.hash(pass, salt);
+  const internationalmobilenumber = parsePhoneNumber(
+    mobilenumber.toString(),
+    "KE"
+  ).number;
   const values = [
     role,
     firstname,
@@ -67,7 +77,7 @@ const signupmerchant = async ({
     id,
     email,
     hashedPassword,
-    mobilenumber,
+    internationalmobilenumber,
   ];
 
   try {
@@ -125,6 +135,7 @@ const checkid = async (idnumber) => {
   const values = [idnumber];
   try {
     let res = await pool.query(sql, values);
+    console.log(res.rowCount);
     if (res.rowCount >= 1) {
       return 1;
     } else {
@@ -135,8 +146,12 @@ const checkid = async (idnumber) => {
   }
 };
 const checkmobilenumber = async (mobilenumber) => {
+  if (mobilenumber == "0") {
+    return 1;
+  }
+  const realnumber = parsePhoneNumber(mobilenumber.toString(), "KE").number;
   const sql = "SELECT * FROM users where mobilenumber=$1";
-  const values = [mobilenumber];
+  const values = [realnumber];
   try {
     let res = await pool.query(sql, values);
     console.log(res.rowCount);

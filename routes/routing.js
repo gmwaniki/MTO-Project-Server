@@ -3,6 +3,7 @@ const express = require("express");
 const router = express.Router();
 const authcontroller = require("../controller/AuthController");
 const { checksignupvalues } = require("../middleware/checksignupdetails");
+const recipientscontroller = require("../controller/RecipientsController");
 
 const checksession = (req, res, next) => {
   if (!req.session.userid) {
@@ -40,8 +41,12 @@ router.post("/issessionactive", (req, res) => {
   }
 });
 
+//check if id is valid
 router.post("/checkid", authcontroller.checkid);
+// check if mobilenumber is valid
 router.post("/checkmobilenumber", authcontroller.checkmobilenumber);
+
+router.post("/addrecipients", checksession, recipientscontroller.addrecipients);
 
 router.post("/logout", checksession, (req, res) => {
   req.session.destroy((err) => {
