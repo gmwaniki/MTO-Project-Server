@@ -1,0 +1,14 @@
+{
+  "product1": {
+    "name": "product1",
+    "price": 250000
+  },
+  "product2": {
+    "name": "product2",
+    "price": 500000
+  },
+  "product3": {
+    "name": "product1",
+    "price": 1000000
+  }
+}

@@ -4,7 +4,7 @@
 
 ---
 
-Authentication ->Passport js and JWT\
+Authentication ->JWT and sessions\
 Server -> Express\
 Middleware-> express-json, ...\
 modules-> npm web 3,africastalking,daraja api, stripe,infura\

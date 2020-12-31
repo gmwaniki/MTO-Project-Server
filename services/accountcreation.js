@@ -7,8 +7,8 @@ require("dotenv").config();
 async function accountdetails(accountindex) {
   let wallet = new HDWallet({
     mnemonic: process.env.mnemonic.toString().trim(),
-    providerOrUrl: `https://rinkeby.infura.io/v3/${process.env.infurakey}`,
-    addressIndex: accountindex,
+    providerOrUrl: `https://kovan.infura.io/v3/${process.env.infurakey}`,
+    addressIndex: parseInt(accountindex),
     numberOfAddresses: 1,
   });
   // console.log(process.env.mnemonic);

@@ -21,7 +21,10 @@ module.exports.login = async (req, res) => {
 
   const user = await authmodel.login(credentials);
   if (user.checkPassword) {
-    req.session.userid = user.email;
+    req.session.userid = user.userid;
+    req.session.role = user.role;
+    req.session.email = user.email;
+    req.session.uuid = user.uuid;
 
     return res.status(201).json({ error: user.error });
   } else {
@@ -34,13 +37,17 @@ module.exports.login = async (req, res) => {
 //Check userid in form validate
 module.exports.checkid = async (req, res) => {
   const { idnumber } = req.body;
-  const result = await authmodel.checkid(idnumber);
+  const result = await authmodel.checkid(idnumber).catch((error) => {
+    res.status(400).json({ error: "Invalid Input" });
+  });
   res.status(200).json({ isidpresent: result });
 };
 module.exports.checkmobilenumber = async (req, res) => {
   const { mobilenumber } = req.body;
-  const result = await authmodel.checkmobilenumber(mobilenumber);
+  const result = await authmodel
+    .checkmobilenumber(mobilenumber)
+    .catch((error) => {
+      res.status(400).json({ error: "Invalid Input" });
+    });
   res.status(200).json({ ismobilenumberpresent: result });
 };
-
-

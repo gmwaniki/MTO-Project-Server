@@ -1,31 +1,42 @@
-let myobj = {
-  name: "",
-  age: 0,
-  secondname: "",
+const { accountbalance } = require("../services/tokenclass");
+
+let mainfunc = async () => {
+  const promise1 = new Promise((resolve, reject) => {
+    resolve({
+      name: "George",
+    });
+  });
+  const promise2 = new Promise((resolve, reject) => {
+    resolve({
+      secondname: "Ng'ang'a",
+    });
+  });
+  const promise3 = new Promise((resolve, reject) => {
+    setTimeout(() => {
+      resolve({
+        name: "Mwaniki",
+      });
+    }, 5000);
+  });
+
+  let myfunct = async () => {
+    let myuser = await Promise.all([
+      promise1,
+      promise2,
+      promise3,
+      { balance: (await accountbalance(0)).balance },
+    ]);
+    // console.log(myuser);
+    return myuser;
+  };
+  console.log(await myfunct());
+
+  let arrayofpromises = [promise1, promise2, promise3];
+  let promisses = [];
+  for await (const iterator of arrayofpromises) {
+    promisses.push(iterator);
+  }
+  console.log(promisses);
 };
 
-// let notwithvalue = Object.entries(myobj).map((item) => {
-//   if (item[1] == "") {
-//     console.log("yes");
-//     return item;
-//   } else {
-//     console.log("no");
-//   }
-// });
-// console.log(notwithvalue);
-// if (notwithvalue.every((value) => value === undefined)) {
-//   console.log("great");
-// } else {
-//   console.log("problem");
-// }
-
-let theempty = {};
-
-for (const key in myobj) {
-  if (myobj[key] === "") {
-    theempty = { ...theempty, [key]: myobj[key] };
-  } else {
-    console.log("pass");
-  }
-}
-console.log(Object.keys(theempty).toString());
+// mainfunc();

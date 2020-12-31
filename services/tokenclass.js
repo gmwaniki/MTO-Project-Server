@@ -24,26 +24,22 @@ class ProjectToken {
 
   async accounts(index) {
     let account = await accountinfo.accountdetails(index);
+
     return {
-      address: account.address,
+      address: account.address[0],
       privateKey: account.privateKey,
       publicKey: account.publicKey,
     };
   }
 
   async accountbalance(index) {
-    let addressinfo = await this.accounts(index);
-    let address = addressinfo.address;
+    let addressinfo = await accountinfo.accountdetails(index);
+    let address = addressinfo.address[0];
 
     let accountBalance = await contractinteraction.getBalanceOf(address);
     let balance = await web3.utils.fromWei(accountBalance, "ether");
     return { balance: balance, address: address };
   }
-
-  async transfer(sender, receiver, amount) {
-    let transfer = await contractinteraction.transfer(sender, receiver, amount);
-    return transfer;
-  }
 }
 
-module.exports = { ProjectToken };
+module.exports = new ProjectToken();
