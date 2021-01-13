@@ -37,8 +37,19 @@ class ProjectToken {
     let address = addressinfo.address[0];
 
     let accountBalance = await contractinteraction.getBalanceOf(address);
+    accountBalance = accountBalance.toString();
     let balance = await web3.utils.fromWei(accountBalance, "ether");
     return { balance: balance, address: address };
+  }
+
+  async transfer(senderindex, receiverindex, amount) {
+    // this function returns a transaction hash
+    let { TxHash } = await contractinteraction.transferovergsn(
+      senderindex,
+      receiverindex,
+      amount
+    );
+    return TxHash;
   }
 }
 

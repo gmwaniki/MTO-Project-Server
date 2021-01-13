@@ -1,4 +1,5 @@
 const HDWallet = require("@truffle/hdwallet-provider");
+
 require("dotenv").config();
 
 // let randomnumber = Math.floor(Math.random() * 10);
@@ -8,6 +9,7 @@ async function accountdetails(accountindex) {
   let wallet = new HDWallet({
     mnemonic: process.env.mnemonic.toString().trim(),
     providerOrUrl: `https://kovan.infura.io/v3/${process.env.infurakey}`,
+
     addressIndex: parseInt(accountindex),
     numberOfAddresses: 1,
   });
@@ -24,5 +26,8 @@ async function accountdetails(accountindex) {
   };
   // console.log(wallet);
 }
+// accountdetails(0).then((account) => {
+//   console.log(account);
+// });
 
 module.exports = { accountdetails };

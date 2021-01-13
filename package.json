@@ -4,17 +4,17 @@
   "description": "[x] connection with smartcontract [x] performing of basic smart contract functions [x] creation of accounts [x] performing advanced smart contract functions like transfer,approve and transferFrom [] storage of accounts in the database",
   "main": "index.js",
   "dependencies": {
+    "@alch/alchemy-web3": "^0.1.18",
     "@opengsn/gsn": "^2.0.3",
     "@truffle/hdwallet-provider": "^1.2.0",
     "abi-decoder": "^2.3.0",
     "bcrypt": "^5.0.0",
+    "body-parser": "^1.19.0",
     "connect-pg-simple": "^6.2.1",
     "cors": "^2.8.5",
     "dotenv": "^8.2.0",
-    "ethereumjs-tx": "^2.1.2",
     "express": "^4.17.1",
     "express-session": "^1.17.1",
-    "jsonwebtoken": "^8.5.1",
     "libphonenumber-js": "^1.9.6",
     "pg": "^8.5.1",
     "pify": "^5.0.0",
@@ -30,6 +30,7 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "morgan": "^1.10.0",
     "nodemon": "^2.0.6"
   }
 }

@@ -7,6 +7,7 @@ const app = express();
 const session = require("express-session");
 const pgSession = require("connect-pg-simple")(session);
 const { Pool } = require("pg");
+const bodyParser = require("body-parser");
 const pool = new Pool({
   user: "e1f",
   host: "localhost",
@@ -16,7 +17,7 @@ const pool = new Pool({
 });
 
 const cors = require("cors");
-
+const morgan = require("morgan");
 app.use(
   session({
     store: new pgSession({
@@ -34,10 +35,16 @@ app.use(
 );
 app.use(cors({ credentials: true, origin: "http://localhost:3000" }));
 app.use(express.urlencoded({ extended: true }));
-app.use(express.json());
+app.use(morgan("dev"));
+const allapproutes = require("./routes/routing");
+app.use("/api", express.json(), allapproutes);
+const webhookroutes = require("./routes/webhooks");
+app.use("/webhook", webhookroutes);
 
-const allroutes = require("./routes/routing");
-app.use("/", allroutes);
+setInterval(() => {
+  let { heapTotal } = process.memoryUsage();
+  console.log(heapTotal / 1e6);
+}, 10000);
 
 app.listen(3636, () => {
   console.log("listening on port 3636");

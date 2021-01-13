@@ -1,19 +1,31 @@
 const express = require("express");
-const stripe = require("stripe")(
-  "sk_test_51I3gNIDsnRyoDmtJ3LAoHpBTA4h9z3ProeYVFcKm8Zvw0f1jeddXr5M2zqn845MGYYRlv9cKnlGYRtjzgdb5IlP10094aVrrf4"
-);
 
 const router = express.Router();
 const authcontroller = require("../controller/AuthController");
 const { checksignupvalues } = require("../middleware/checksignupdetails");
 const recipientscontroller = require("../controller/RecipientsController");
-const { paymentIntent,paymentsuccesswebhook } = require("../controller/PaymentController");
+const {
+  paymentIntent,
+  paymentsuccesswebhook,
+} = require("../controller/PaymentController");
 const products = require("../products.json");
+const {
+  organisationdetails,
+  sendtokenstoallrecipients,
+} = require("../controller/OrgController");
 
 const checksession = (req, res, next) => {
   if (!req.session.userid) {
-    res.status(401).json({ message: "Please login" });
+    res.status(401).send("Please login");
   } else {
+    next();
+  }
+};
+const checkrole = (req, res, next) => {
+  if (req.session.role !== "organisation") {
+    res.status(401).send("Unauthorized");
+  } else {
+    console.log("Role:", req.session.role);
     next();
   }
 };
@@ -50,7 +62,6 @@ router.post("/issessionactive", (req, res) => {
 router.post("/checkid", authcontroller.checkid);
 // check if mobilenumber is valid
 router.post("/checkmobilenumber", authcontroller.checkmobilenumber);
-router.post("/webhook", paymentsuccesswebhook);
 
 router.post("/addrecipients", checksession, recipientscontroller.addrecipients);
 
@@ -61,9 +72,17 @@ router.post(
 );
 router.post("/secret", paymentIntent);
 
-router.post("/products", async (req, res) => {
+router.post("/products", checksession, checkrole, async (req, res) => {
   res.json(products);
 });
+
+router.post("/orgdetails", organisationdetails);
+router.post(
+  "/sendtoallrecipients",
+  checksession,
+  checkrole,
+  sendtokenstoallrecipients
+);
 
 router.post("/logout", checksession, (req, res) => {
   req.session.destroy((err) => {

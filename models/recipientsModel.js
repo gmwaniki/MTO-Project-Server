@@ -2,16 +2,18 @@ const { parsePhoneNumber } = require("libphonenumber-js");
 const {
   checkid,
   checkmobilenumber,
-  upateuserdetails,
+  updateuserdetails,
 } = require("../models/authModel");
 const { accountbalance } = require("../services/tokenclass");
 const { pool } = require("../services/dbconnection");
 const { v4: uuidv4 } = require("uuid");
+const { selectrecipientsbyorguuid } = require("../services/commondbtasks");
 
-const addrecipient = async (recipients, organisationid) => {
+const addrecipient = async (recipients, organisationid, organisationuuid) => {
   // Check if input is an array
   const finalarrayofrecipients = async () => {
     try {
+      // Check if it is array and has inputs
       if (Array.isArray(recipients) && recipients.length > 0) {
         let correctrecipients = recipients.reduce(
           (accumulator, recipient, index, arr) => {
@@ -226,13 +228,13 @@ const addrecipient = async (recipients, organisationid) => {
     ];
     // Submit to db returning *
     const sql2 =
-      "INSERT INTO organisations_recipients(orgid,recipientid,uuid,address,index,status,mobilenumber,idnumber,firstname,lastname) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING *";
+      "INSERT INTO organisations_recipients(orgid,recipientid,uuid,address,index,status,mobilenumber,idnumber,firstname,lastname,orguuid) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11) RETURNING *";
 
     try {
       let res = await pool.query(sql, values);
 
       // Use db id and update account
-      let updateres = await upateuserdetails(res.rows[0].userid);
+      let updateres = await updateuserdetails(res.rows[0].userid);
 
       let status = "active";
       const values2 = [
@@ -246,6 +248,7 @@ const addrecipient = async (recipients, organisationid) => {
         updateres.idnumber,
         updateres.firstname,
         updateres.lastname,
+        organisationuuid,
       ];
       let res2 = await pool.query(sql2, values2);
     } catch (error) {
@@ -256,37 +259,68 @@ const addrecipient = async (recipients, organisationid) => {
   });
 };
 
-const selectrecipients = async (organisationid) => {
-  const sql = `SELECT * FROM organisations_recipients WHERE orgid='${organisationid}'`;
-
+const selectrecipients = async (orguuid) => {
   try {
-    let res = await pool.query(sql);
-    // console.log(res.rows);
-    const recipientrows = res.rows;
-    // console.log(recipientrows);
-    const result = [];
-    for (const user of recipientrows) {
-      console.log(user.index);
-      result.push({
-        balance: "0",
-        // await (await accountbalance(user.index)).balance
-        uuid: user.uuid,
-        firstname: user.firstname,
-        lastname: user.lastname,
-        idnumber: user.idnumber,
-        mobilenumber: user.mobilenumber,
-        status: user.status,
+    const recipientrows = await selectrecipientsbyorguuid(orguuid);
+    let arrayofpromises = recipientrows.map((user) => {
+      return new Promise(async (resolve, reject) => {
+        resolve({
+          balance: await (await accountbalance(user.index)).balance,
+          uuid: user.uuid,
+          firstname: user.firstname,
+          lastname: user.lastname,
+          idnumber: user.idnumber,
+          mobilenumber: user.mobilenumber,
+          status: user.status,
+        });
       });
-    }
-    console.log(result);
-    return result;
+    });
+    let promiseresult = await Promise.all(arrayofpromises);
+    console.log("From Promise all", promiseresult);
+    return promiseresult;
   } catch (error) {
     console.log(error);
+    throw new Error("Error Occured selecting");
   }
 };
 // selectrecipients(5);
 
+const deleterecipient = async (recipientuuid) => {
+  const sql = "DELETE * FROM users WHERE uuid=$1";
+  // transfer all recipients funds to org funds to org
+
+  const values = [recipientuuid];
+
+  try {
+    await pool.query(sql, values);
+    return;
+  } catch (error) {
+    throw new Error("Error Occured while trying to delete");
+  }
+};
+
+const updaterecipient = async ({
+  firstname,
+  lastname,
+  idnumber,
+  mobilenumber,
+  uuid,
+}) => {
+  const sql =
+    "UPDATE users SET firstname=$1,lastname=$2,mobilenumber=$3,idnumber=$4 WHERE uuid=$5 ";
+  const values = [firstname, lastname, mobilenumber, idnumber, uuid];
+  try {
+    await pool.query(sql, values);
+    return;
+  } catch (error) {
+    console.log(error);
+    throw new Error("Error Occured During update");
+  }
+};
+
 module.exports = {
   selectrecipients,
   addrecipient,
+  deleterecipient,
+  updaterecipient,
 };

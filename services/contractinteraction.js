@@ -1,15 +1,17 @@
 const Web3 = require("web3");
 require("dotenv").config();
+
 const web3 = new Web3(`https://kovan.infura.io/v3/${process.env.infurakey}`);
+
 const accountinfo = require("./accountcreation");
 
 const GSN = require("@opengsn/gsn");
 const abidecoder = require("abi-decoder");
 
 // change depending to network
-// current Rinkeby
+// current Kovan
 
-let paymaster = "0x9bfa154d75C91CdEe372A5f343579c9717817c13";
+let paymaster = "0x964c26832AaA07279dE868846DC1bF4B9cDf5693";
 
 // change on redeploy
 const contractabi = require("./MyToken.json");
@@ -68,23 +70,23 @@ async function transferovergsn(senderindex, receiverindex, transferamount) {
     transferamount.toString(),
     "ether"
   );
-  let balance = await contract.methods
+  let receipt = await contract.methods
     .transfer(receiveraddress, sendintransferamount)
     .send({ from: senderaddress, gas: 1e6 });
 
-  console.log(balance.events.Transfer);
-  console.log(balance.events.Transfer.transactionHash);
-  console.log(balance.events.Transfer.returnValues);
-  console.log(balance.events.Transfer.returnValues.from);
+  console.log(receipt.events.Transfer);
+  console.log(receipt.events.Transfer.transactionHash);
+  console.log(receipt.events.Transfer.returnValues);
+  console.log(receipt.events.Transfer.returnValues.from);
 
   return {
-    TxHash: balance.events.Transfer.transactionHash,
-    from: balance.events.Transfer.returnValues.from,
+    TxHash: receipt.events.Transfer.transactionHash,
+    from: receipt.events.Transfer.returnValues.from,
     fromIndex: senderindex,
     toIndex: receiverindex,
-    to: balance.events.Transfer.returnValues.to,
+    to: receipt.events.Transfer.returnValues.to,
     value: await web3.utils.fromWei(
-      balance.events.Transfer.returnValues.value,
+      receipt.events.Transfer.returnValues.value,
       "ether"
     ),
   };
@@ -109,8 +111,6 @@ const gettransactiondata = async (hash) => {
 // ).then((results) => console.log(results));
 
 // getBalanceOf("0x76df2fa76677e6e143bf05bdb7f324fe43d1e11d");
-
-
 
 module.exports = {
   getTotalTokenSupply,

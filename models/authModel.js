@@ -20,7 +20,6 @@ const updateuserdetails = async (userid) => {
   try {
     let res = await pool.query(sql, values);
     return res.rows[0];
-    // console.log(res.rows);
   } catch (error) {
     console.log(error);
   }
@@ -187,7 +186,6 @@ const login = async ({ email, pass }) => {
   const values = [email];
   try {
     let res = await pool.query(sql, values);
-    console.log(res);
 
     if (res.rowCount <= 0) {
       return {
@@ -285,5 +283,5 @@ module.exports = {
   login,
   checkid,
   checkmobilenumber,
-  upateuserdetails: updateuserdetails,
+  updateuserdetails,
 };
