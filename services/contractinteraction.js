@@ -56,8 +56,8 @@ async function transferovergsn(senderindex, receiverindex, transferamount) {
 
   let sender = accountinfo.accountdetails(senderindex);
   let receiver = accountinfo.accountdetails(receiverindex);
-  let senderaddress = (await sender).address[0];
-  let receiveraddress = (await receiver).address[0];
+  let senderaddress = (await sender).address;
+  let receiveraddress = (await receiver).address;
   let receiverprivateKey = (await receiver).privateKey;
   let senderprivateKey = (await sender).privateKey;
 
@@ -74,26 +74,45 @@ async function transferovergsn(senderindex, receiverindex, transferamount) {
     .transfer(receiveraddress, sendintransferamount)
     .send({ from: senderaddress, gas: 1e6 });
 
-  console.log(receipt.events.Transfer);
-  console.log(receipt.events.Transfer.transactionHash);
-  console.log(receipt.events.Transfer.returnValues);
-  console.log(receipt.events.Transfer.returnValues.from);
+  // console.log(receipt.events.Transfer);
+  // console.log(receipt.events.Transfer.transactionHash);
+  // console.log(receipt.events.Transfer.returnValues);
+  // console.log(receipt.events.Transfer.returnValues.from);
 
-  return {
-    TxHash: receipt.events.Transfer.transactionHash,
-    from: receipt.events.Transfer.returnValues.from,
-    fromIndex: senderindex,
-    toIndex: receiverindex,
-    to: receipt.events.Transfer.returnValues.to,
-    value: await web3.utils.fromWei(
-      receipt.events.Transfer.returnValues.value,
-      "ether"
-    ),
-  };
+  return new Promise(async (resolve, reject) => {
+    resolve({
+      TxHash: receipt.events.Transfer.transactionHash,
+      from: receipt.events.Transfer.returnValues.from,
+      fromIndex: senderindex,
+      toIndex: receiverindex,
+      to: receipt.events.Transfer.returnValues.to,
+      value: await web3.utils.fromWei(
+        receipt.events.Transfer.returnValues.value,
+        "ether"
+      ),
+    });
+  });
   // console.log(myobj);
   // return myobj;
 }
-// transferovergsn(0, 3, 1);
+let results = async () => {
+  let arrayofrequests = [{ sender: 0, receiver: 3, amount: 1 }];
+  let mypromises = [];
+  let result;
+  try {
+    for (const myobj of arrayofrequests) {
+      mypromises.push(
+        await transferovergsn(myobj.sender, myobj.receiver, myobj.amount)
+      );
+    }
+    result = await Promise.all(mypromises);
+  } catch (error) {
+    console.log(error.message);
+  }
+
+  console.log(result);
+};
+results();
 
 const gettransactiondata = async (hash) => {
   const receipt = await web3.eth.getTransactionReceipt(hash.toString());
