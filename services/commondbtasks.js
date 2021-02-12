@@ -1,55 +1,12 @@
 const { pool } = require("./dbconnection");
-const { v4: uuidv4 } = require("uuid");
+const { gettransactiondata } = require("./contractinteraction");
+const { parsePhoneNumber } = require("libphonenumber-js");
 
-module.exports.recordtransfer = async (senderuuid, receiveruuid, txhash) => {
-  let sendername;
-  let senderrole;
-  let receivername;
-  let receiverrole;
-
-  if (senderuuid === 0) {
-    sendername = "MTOG System";
-    senderrole = "system";
-  } else {
-    let user = await this.selectuser(senderuuid);
-    if (user.role === "organisation") {
-      sendername = user.orgname;
-      senderrole = user.role;
-    } else if (user.role === "recipient" || user.role === "merchant") {
-      sendername = user.firtname + " " + user.lastname;
-      senderrole = user.role;
-    }
-  }
-
-  if (receiveruuid === 0) {
-    recivername = "MTOG System";
-    receiverrole = "system";
-  } else {
-    let user = await this.selectuser(receiveruuid);
-    if (user.role === "organisation") {
-      receivername = user.orgname;
-      receiverrole = user.role;
-    } else if (user.role === "recipient" || user.role === "merchant") {
-      receivername = user.firstname + " " + user.lastname;
-      receiverrole = user.role;
-    }
-  }
-
-  let tuid = uuidv4();
-
+module.exports.recordtransfer = async (senderid, receiverid, txhash) => {
   if (txhash) {
     const insertsql =
-      "INSERT INTO token_transactions(sender_name,sender_role,sender_uuid,receiver_name,receiver_role,receiver_uuid,txhash,tuid) VALUES($1,$2,$3,$4,$5,$6,$7,$8) RETURNING *";
-    const values = [
-      sendername,
-      senderrole,
-      senderuuid,
-      receivername,
-      receiverrole,
-      receiveruuid,
-      txhash,
-      tuid,
-    ];
+      "INSERT INTO transactions(senderid,receiverid,transactionhash) VALUES($1,$2,$3) RETURNING *";
+    const values = [senderid, receiverid, txhash];
     try {
       const inserttotransactiontable = await pool.query(insertsql, values);
       console.log(inserttotransactiontable.rows);
@@ -59,14 +16,11 @@ module.exports.recordtransfer = async (senderuuid, receiveruuid, txhash) => {
     }
   }
 
-  // if senderuuid is 0 it is system transfer
-  // if txhash
-  // insert into  db
-  return receiveruuid;
+  return receiverid;
 };
-module.exports.selectuser = async (uuid) => {
-  const selectsql = "SELECT * FROM users WHERE uuid=$1";
-  const values = [uuid];
+module.exports.selectuser = async (userid) => {
+  const selectsql = "SELECT * FROM users WHERE userid=$1";
+  const values = [userid];
 
   let orgdetails;
   try {
@@ -80,10 +34,9 @@ module.exports.selectuser = async (uuid) => {
   // return user as object
 };
 
-module.exports.selectrecipientsbyorguuid = async (orguuid) => {
-  const selectrecipientssql =
-    "SELECT * FROM organisations_recipients WHERE orguuid=$1";
-  const values = [orguuid];
+module.exports.selectrecipientsbyorguserid = async (orgid) => {
+  const selectrecipientssql = "SELECT * FROM recipient WHERE organisationid=$1";
+  const values = [orgid];
 
   let resultrows;
   try {
@@ -93,4 +46,127 @@ module.exports.selectrecipientsbyorguuid = async (orguuid) => {
     throw new Error(error.message);
   }
   return resultrows.rows;
+};
+
+exports.getausersinfo = async (userid) => {
+  // sql1 selects the user from users table
+  console.log("got userid", userid);
+  const sql1 = "SELECT * FROM users WHERE userid=$1";
+  const values = [userid];
+  const orgsql = "SELECT * FROM organisation WHERE userid=$1";
+  const merchantsql = "SELECT * FROM merchant WHERE userid=$1";
+  const recipientsql = "SELECT * FROM recipient WHERE userid=$1";
+  if (userid == "0") {
+    return {
+      name: "MTOG System",
+    };
+  }
+  try {
+    const results = await pool.query(sql1, values);
+    console.log( results.rows);
+    const { role } = results.rows[0];
+
+    if (role === "Organisation") {
+      let organisation_result = await pool.query(orgsql, values);
+      return { name: organisation_result.rows[0].name };
+    } else if (role === "Merchant") {
+      let organisation_result = await pool.query(merchantsql, values);
+      return {
+        name: `${organisation_result.rows[0].firstname} ${organisation_result.rows[0].lastname}`,
+      };
+    } else if (role === "Recipient") {
+      let organisation_result = await pool.query(recipientsql, values);
+      return {
+        name: `${organisation_result.rows[0].firstname} ${organisation_result.rows[0].lastname}`,
+      };
+    } else {
+      return {
+        name: "",
+      };
+    }
+  } catch (error) {
+    console.log(error);
+  }
+
+  // check if role is recipient,organisation,merchant
+  // if one select from the respective users table
+  // if recipient get firstname+lastname
+  // if merchant get firstname+lastname
+  // if organisation get name
+  // if userid = 0 name  ==System
+};
+
+// recieves id and gets all transactions in order
+// if it is get user records from token_transaction where this id is sender or
+// receiver in descending order according to the timestamp
+// map through each record call the gettransactions function
+// and return a promise with an object with sendername,
+// senderid,amount,recivername,receiverid
+module.exports.getPreviousTransaction = async (userid) => {
+  const sql =
+    "SELECT * FROM transactions WHERE receiverid=$1 OR senderid=$1 ORDER BY timestamp DESC";
+  const values = [userid];
+  // console.log("Got userid", userid);
+
+  let userresults;
+  try {
+    userresults = await pool.query(sql, values);
+    console.log("Merchant results", userresults.rows);
+  } catch (error) {
+    console.log(error);
+  }
+  // console.log(userresults.rows);
+  let userTransactionData = userresults.rows.map(
+    async ({
+      senderid,
+      transactionhash,
+      receiverid,
+      timestamp,
+      transactionid,
+    }) => {
+      let { value } = await gettransactiondata(transactionhash);
+      // let usertimestamp = new Date(timestamp);
+      // console.log(usertimestamp);
+
+      let { name: sendername } = await this.getausersinfo(senderid);
+      let { name: receivername } = await this.getausersinfo(receiverid);
+
+      return {
+        sendername,
+        senderid,
+        value,
+        receivername,
+        receiverid,
+        timestamp,
+        transactionid,
+      };
+    }
+  );
+  let data = await Promise.all(userTransactionData);
+  return data;
+};
+
+// transaction("1bbdaa94-a87f-41f6-a8b8-d4daa8b1cb98");
+
+module.exports.insertintousers = async ({
+  email,
+  idnumber,
+  mobilenumber,
+  role,
+}) => {
+  try {
+    let useremail = email || null;
+    let useridnumber = idnumber || null;
+
+    mobilenumber = parsePhoneNumber(mobilenumber, "KE").number;
+
+    const sql =
+      "INSERT INTO users(email,idnumber,mobilenumber,role) VALUES($1,$2,$3,$4) RETURNING * ";
+    const values = [useremail, useridnumber, mobilenumber, role];
+    const result = await pool.query(sql, values);
+    return result.rows[0];
+  } catch (error) {
+    console.log(error.message);
+    throw error.message;
+  }
 };

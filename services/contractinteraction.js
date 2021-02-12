@@ -30,7 +30,6 @@ async function getTotalTokenSupply() {
 }
 async function getTokenName() {
   let name = await contract.methods.name().call();
-  console.log(name);
   return name;
 }
 async function getTokenSymbol() {
@@ -51,15 +50,18 @@ async function getBalanceOf(address) {
 async function transferovergsn(senderindex, receiverindex, transferamount) {
   let provider = await GSN.RelayProvider.newProvider({
     provider: web3.currentProvider,
-    config: { paymasterAddress: paymaster },
+    config: {
+      paymasterAddress: paymaster,
+      loggerConfiguration: { logLevel: "error" },
+    },
   }).init();
 
-  let sender = accountinfo.accountdetails(senderindex);
-  let receiver = accountinfo.accountdetails(receiverindex);
-  let senderaddress = (await sender).address;
-  let receiveraddress = (await receiver).address;
-  let receiverprivateKey = (await receiver).privateKey;
-  let senderprivateKey = (await sender).privateKey;
+  let sender = await accountinfo.accountdetails(senderindex);
+  let receiver = await accountinfo.accountdetails(receiverindex);
+  let senderaddress = sender.address;
+  let receiveraddress = receiver.address;
+  let receiverprivateKey = receiver.privateKey;
+  let senderprivateKey = sender.privateKey;
 
   provider.addAccount(receiverprivateKey);
   provider.addAccount(senderprivateKey);
@@ -73,11 +75,6 @@ async function transferovergsn(senderindex, receiverindex, transferamount) {
   let receipt = await contract.methods
     .transfer(receiveraddress, sendintransferamount)
     .send({ from: senderaddress, gas: 1e6 });
-
-  // console.log(receipt.events.Transfer);
-  // console.log(receipt.events.Transfer.transactionHash);
-  // console.log(receipt.events.Transfer.returnValues);
-  // console.log(receipt.events.Transfer.returnValues.from);
 
   return new Promise(async (resolve, reject) => {
     resolve({
@@ -112,19 +109,21 @@ let results = async () => {
 
   console.log(result);
 };
-results();
+// results();
 
 const gettransactiondata = async (hash) => {
   const receipt = await web3.eth.getTransactionReceipt(hash.toString());
 
   const decodedlogs = await abidecoder.decodeLogs(receipt.logs);
+  // console.log(decodedlogs[0].events);
 
   return {
-    from: decodedlogs[1].events[0].value,
-    to: decodedlogs[1].events[1].value,
-    value: await web3.utils.fromWei(decodedlogs[1].events[2].value, "ether"),
+    from: decodedlogs[0].events[0].value,
+    to: decodedlogs[0].events[1].value,
+    value: await web3.utils.fromWei(decodedlogs[0].events[2].value, "ether"),
   };
 };
+
 // gettransactiondata(
 //   "0x32bf0ac134d88fe0cf658a5b9c93a39d14454764bde6b4a07a6d3ae293e6d4ae"
 // ).then((results) => console.log(results));

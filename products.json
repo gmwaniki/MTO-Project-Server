@@ -8,7 +8,11 @@
     "price": 500000
   },
   "product3": {
-    "name": "product1",
+    "name": "product3",
     "price": 1000000
+  },
+  "product4": {
+    "name": "product4",
+    "price": 2000000
   }
 }

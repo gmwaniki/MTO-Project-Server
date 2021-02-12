@@ -8,7 +8,7 @@ const {
 const { transferovergsn } = require("../services/contractinteraction");
 const { pool } = require("../services/dbconnection");
 const { sendsms } = require("../services/sendsms");
-const { accountbalance, transfer } = require("../services/tokenclass");
+const { accountbalance } = require("../services/tokenclass");
 
 // get organisation information
 // function receiving org  returns results

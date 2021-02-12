@@ -2,7 +2,7 @@ const express = require("express");
 
 const router = express.Router();
 const authcontroller = require("../controller/AuthController");
-const { checksignupvalues } = require("../middleware/checksignupdetails");
+const { checkforvalidationerrors } = require("../middleware/validationerrors");
 const recipientscontroller = require("../controller/RecipientsController");
 const {
   paymentIntent,
@@ -12,17 +12,41 @@ const products = require("../products.json");
 const {
   organisationdetails,
   sendtokenstoallrecipients,
+  getOrgRecipientTransaction,
+  getmerchantsbyorgid,
+  getothermerchantsbyorgid,
+  addmerchantoorg,
+  removemerchantfromorg,
+  sendtokenstoarecipient,
 } = require("../controller/OrgController");
+const { validateusersignup } = require("../middleware/users");
+const {
+  maketransaction,
+  completetransaction,
+  merchantdetails,
+  previoustransactions,
+  redeemtokens,
+} = require("../controller/MerchantController");
+const { sendtoarecipient } = require("../models/organisationmodel");
 
 const checksession = (req, res, next) => {
   if (!req.session.userid) {
-    res.status(401).send("Please login");
+    res.status(401).json({ message: "Please login" });
   } else {
     next();
   }
 };
-const checkrole = (req, res, next) => {
-  if (req.session.role !== "organisation") {
+
+const orgrole = (req, res, next) => {
+  if (req.session.role !== "Organisation") {
+    res.status(401).send("Unauthorized");
+  } else {
+    console.log("Role:", req.session.role);
+    next();
+  }
+};
+const merchantrole = (req, res, next) => {
+  if (req.session.role !== "Merchant") {
     res.status(401).send("Unauthorized");
   } else {
     console.log("Role:", req.session.role);
@@ -31,7 +55,7 @@ const checkrole = (req, res, next) => {
 };
 
 router.get("/", (req, res) => {
-  console.log(req.session);
+  // console.log(req.session);
   res.json({ message: "Hello" });
 });
 router.post("/", checksession, (req, res) => {
@@ -40,13 +64,24 @@ router.post("/", checksession, (req, res) => {
 router.get("/bye", (req, res) => {
   res.send("Good Bye");
 });
-router.post("/signuporg", checksignupvalues, authcontroller.signuporg);
+router.post(
+  "/signuporg",
+  validateusersignup("insertorg"),
+  checkforvalidationerrors,
+  authcontroller.signuporg
+);
 router.post(
   "/signupmerchant",
-  checksignupvalues,
+  validateusersignup("insertmerchant"),
+  checkforvalidationerrors,
   authcontroller.signupmerchant
 );
-router.post("/login", authcontroller.login);
+router.post(
+  "/login",
+  validateusersignup("login"),
+  checkforvalidationerrors,
+  authcontroller.login
+);
 
 router.post("/issessionactive", (req, res) => {
   console.log(req.session);
@@ -59,30 +94,103 @@ router.post("/issessionactive", (req, res) => {
 });
 
 //check if id is valid
-router.post("/checkid", authcontroller.checkid);
+router.post(
+  "/checkid",
+  validateusersignup("checkid"),
+  checkforvalidationerrors,
+  authcontroller.checkid
+);
 // check if mobilenumber is valid
-router.post("/checkmobilenumber", authcontroller.checkmobilenumber);
+router.post(
+  "/checkmobilenumber",
+  validateusersignup("checkmobilenumber"),
+  checkforvalidationerrors,
+  authcontroller.checkmobilenumber
+);
+router.post(
+  "/checkemail",
+  validateusersignup("checkemail"),
+  checkforvalidationerrors,
+  authcontroller.checkemail
+);
 
-router.post("/addrecipients", checksession, recipientscontroller.addrecipients);
+router.post(
+  "/addrecipients",
+  checksession,
+  orgrole,
+  validateusersignup("addrecipient"),
+  checkforvalidationerrors,
+  recipientscontroller.addrecipients
+);
 
 router.post(
   "/selectrecipientsfororg",
   checksession,
+  orgrole,
   recipientscontroller.selectrecipientsfororg
 );
-router.post("/secret", paymentIntent);
+router.post(
+  "/updaterecipient",
+  checksession,
+  orgrole,
+  validateusersignup("updaterecipient"),
+  checkforvalidationerrors,
+  recipientscontroller.updaterecipient
+);
+router.post(
+  "/deleterecipient",
+  checksession,
+  orgrole,
+  recipientscontroller.deleterecipient
+);
+router.post("/secret", checksession, orgrole, paymentIntent);
 
-router.post("/products", checksession, checkrole, async (req, res) => {
+router.post("/products", checksession, orgrole, async (req, res) => {
   res.json(products);
 });
 
-router.post("/orgdetails", organisationdetails);
+router.post("/orgdetails", checksession, orgrole, organisationdetails);
 router.post(
   "/sendtoallrecipients",
   checksession,
-  checkrole,
+  orgrole,
   sendtokenstoallrecipients
 );
+router.post("/sendtoarecipient", checksession, orgrole, sendtokenstoarecipient);
+
+router.post("/gettransactions", checksession, getOrgRecipientTransaction);
+
+// router.post("/getmerchants", checksession);
+router.post("/getmerchantsbyorg", checksession, orgrole, getmerchantsbyorgid);
+router.post(
+  "/getothermerchants",
+  checksession,
+  orgrole,
+  getothermerchantsbyorgid
+);
+
+router.post("/addmerchanttoorg", checksession, orgrole, addmerchantoorg);
+router.post(
+  "/removemerchantfromorg",
+  checksession,
+  orgrole,
+  removemerchantfromorg
+);
+router.post("/merchantdetails", checksession, merchantrole, merchantdetails);
+router.post("/maketransaction", checksession, merchantrole, maketransaction);
+router.post(
+  "/merchanttransactions",
+  checksession,
+  merchantrole,
+  previoustransactions
+);
+router.post(
+  "/completetransaction",
+  checksession,
+  merchantrole,
+  completetransaction
+);
+router.post("/redeemtokens", checksession, merchantrole, redeemtokens);
 
 router.post("/logout", checksession, (req, res) => {
   req.session.destroy((err) => {

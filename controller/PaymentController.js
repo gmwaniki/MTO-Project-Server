@@ -2,8 +2,8 @@ const {
   getPaymentIntent,
   paymentfromwebhook,
 } = require("../models/paymentModel");
-
-const endpointsecret = "whsec_xOIjfs5dfjlILXVc7jRq93vW8W2mmanN";
+require("dotenv").config();
+const endpointsecret = `${process.env.endpointsecret}`;
 const stripe = require("stripe")(process.env.stripekey);
 
 module.exports.paymentIntent = async (req, res) => {

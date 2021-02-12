@@ -1,14 +1,10 @@
-const { token } = require("morgan");
 const { nanoid } = require("nanoid");
 const {
   recordtransfer,
   selectuser,
   getPreviousTransaction,
 } = require("../services/commondbtasks");
-const {
-  getBalanceOf,
-  transferovergsn,
-} = require("../services/contractinteraction");
+const { transferovergsn } = require("../services/contractinteraction");
 const { pool } = require("../services/dbconnection");
 const { sendsms } = require("../services/sendsms");
 const { accountbalance } = require("../services/tokenclass");

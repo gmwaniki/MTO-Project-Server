@@ -1,8 +1,8 @@
 const Stripe = require("stripe");
 require("dotenv").config();
 const stripe = Stripe(process.env.stripekey);
-const { pool } = require("../services/dbconnection");
-const { transfer } = require("../services/tokenclass");
+
+
 
 const productsjson = require("../products.json");
 const { recordtransfer, selectuser } = require("../services/commondbtasks");
@@ -36,7 +36,7 @@ module.exports.getPaymentIntent = async ({ productname }, orgid) => {
 // model to transfer tokens and poulate transactions table for system to organisation
 
 module.exports.paymentfromwebhook = async (receiverid, amount) => {
-  let organisation;
+  
   let receiveraccountid = parseInt(receiverid);
   let txhash;
   try {

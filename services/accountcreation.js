@@ -1,7 +1,7 @@
 const HDWallet = require("@truffle/hdwallet-provider");
 const path = require("path");
 
-// require("dotenv").config({ path: path.join(__dirname, "../.env") });
+
 require("dotenv").config();
 
 async function accountdetails(accountindex) {
@@ -12,7 +12,7 @@ async function accountdetails(accountindex) {
       mnemonic: {
         phrase: `${process.env.mnemonic}`,
       },
-      providerOrUrl: `https://kovan.infura.io/v3/${process.env.infurakey}`,
+      providerOrUrl: `wss://kovan.infura.io/ws/v3/${process.env.infurakey}`,
       addressIndex: accountindex,
       numberOfAddresses: 1,
       pollingInterval: 10000,

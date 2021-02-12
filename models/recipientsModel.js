@@ -2,7 +2,7 @@ const { parsePhoneNumber } = require("libphonenumber-js");
 const {
   checkid,
   checkmobilenumber,
-  updateuserdetails,
+ 
 } = require("../models/authModel");
 const { accountbalance } = require("../services/tokenclass");
 const { pool } = require("../services/dbconnection");

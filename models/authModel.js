@@ -1,33 +1,10 @@
 // const { Pool } = require("pg");
 const bcrypt = require("bcrypt");
 const { parsePhoneNumber } = require("libphonenumber-js");
-const { accounts } = require("../services/tokenclass");
 
 const { insertintousers } = require("../services/commondbtasks");
 const { pool } = require("../services/dbconnection");
 const { accountdetails } = require("../services/accountcreation");
-
-// const pool = new Pool({
-//   user: "e1f",
-//   host: "localhost",
-//   database: "myproject",
-//   password: "e1f",
-//   port: 5432,
-// });
-
-const updateuserdetails = async (userid) => {
-  const sql = `UPDATE users SET address=$1,index=$2 WHERE userid='${userid}' RETURNING *`;
-  let details = await accounts(parseInt(userid));
-
-  const values = [details.address, userid];
-  try {
-    let res = await pool.query(sql, values);
-    return res.rows[0];
-  } catch (error) {
-    console.log(error);
-  }
-};
-// upateuserdetails(5)
 
 const signuporg = async ({ name, email, password, mobilenumber }) => {
   const userdata = await insertintousers({
@@ -266,6 +243,6 @@ module.exports = {
   login,
   checkid,
   checkmobilenumber,
-  updateuserdetails,
+
   checkemail,
 };
