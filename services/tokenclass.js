@@ -26,15 +26,15 @@ class ProjectToken {
     let account = await accountinfo.accountdetails(index);
 
     return {
-      address: account.address[0],
+      address: account.address,
       privateKey: account.privateKey,
       publicKey: account.publicKey,
     };
   }
 
   async accountbalance(index) {
-    let addressinfo = await accountinfo.accountdetails(index);
-    let address = addressinfo.address[0];
+    let addressinfo = await accountinfo.accountdetails(parseInt(index));
+    let address = addressinfo.address;
 
     let accountBalance = await contractinteraction.getBalanceOf(address);
     accountBalance = accountBalance.toString();

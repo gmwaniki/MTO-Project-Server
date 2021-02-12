@@ -1,23 +1,20 @@
 const HDWallet = require("@truffle/hdwallet-provider");
+const path = require("path");
 
+// require("dotenv").config({ path: path.join(__dirname, "../.env") });
 require("dotenv").config();
 
 async function accountdetails(accountindex) {
-  // let wallet = new HDWallet({
-  //   mnemonic: { phrase: process.env.mnemonic },
-  //   providerOrUrl: `https://kovan.infura.io/v3/${process.env.infurakey}`,
-
-  //   addressIndex: parseInt(accountindex),
-  //   numberOfAddresses: 1,
-  // });
-  // console.log(wallet);
   let wallet;
+  accountindex = parseInt(accountindex);
   try {
     wallet = new HDWallet({
       mnemonic: {
         phrase: `${process.env.mnemonic}`,
       },
       providerOrUrl: `https://kovan.infura.io/v3/${process.env.infurakey}`,
+      addressIndex: accountindex,
+      numberOfAddresses: 1,
       pollingInterval: 10000,
     });
     // console.log(wallet);
@@ -25,19 +22,25 @@ async function accountdetails(accountindex) {
     console.log(error);
     console.log(error.message);
   }
+  // console.log("Account index", accountindex);
+  let testaddress = wallet?.getAddress(accountindex);
 
-  let address = wallet.getAddress(accountindex);
-
+  const address = testaddress || Object.keys(wallet.wallets)[0];
+  // console.log("The address", address);
+  // console.log(address);
   let privateKey = wallet.wallets[address].privateKey.toString("hex");
   let publicKey = wallet.wallets[address].publicKey.toString("hex");
 
+  // console.log("The private key", privateKey);
+
   return {
-    address: address,
+    address,
     privateKey: privateKey,
     publicKey: publicKey,
   };
 }
+// accountdetails(49);
 
-// accountdetails(0);
+// accountdetails(11);
 
 module.exports = { accountdetails };
