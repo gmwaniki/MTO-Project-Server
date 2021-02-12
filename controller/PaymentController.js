@@ -7,7 +7,7 @@ const endpointsecret = "whsec_xOIjfs5dfjlILXVc7jRq93vW8W2mmanN";
 const stripe = require("stripe")(process.env.stripekey);
 
 module.exports.paymentIntent = async (req, res) => {
-  let orgid = req.session.uuid;
+  let orgid = req.session.userid;
   const { intent, error } = await getPaymentIntent(req.body, orgid);
   if (!error) {
     res.json({ client_secret: intent, error });
@@ -29,12 +29,12 @@ module.exports.paymentsuccesswebhook = async (req, res) => {
   res.json({ received: true });
   console.log(event);
   let amount = parseInt(event.data.object.amount_received) / 100;
-  let uuid = event.data.object.charges.data[0].metadata.userid;
+  let userid = event.data.object.charges.data[0].metadata.userid;
   let email = event.data.object.charges.data[0].billing_details.email;
   console.log(`Amount`, amount);
-  console.log(`uuid`, uuid);
+  console.log(`userid`, userid);
   console.log(`Email`, email);
-  const result = await paymentfromwebhook(uuid, amount).catch((error) => {
+  const result = await paymentfromwebhook(userid, amount).catch((error) => {
     console.log(`From controller:`, error);
   });
 };
