@@ -1,16 +1,19 @@
-const { Pool } = require("pg");
+// const { Pool } = require("pg");
 const bcrypt = require("bcrypt");
 const { parsePhoneNumber } = require("libphonenumber-js");
 const { accounts } = require("../services/tokenclass");
-const { v4: uuidv4 } = require("uuid");
 
-const pool = new Pool({
-  user: "e1f",
-  host: "localhost",
-  database: "myproject",
-  password: "e1f",
-  port: 5432,
-});
+const { insertintousers } = require("../services/commondbtasks");
+const { pool } = require("../services/dbconnection");
+const { accountdetails } = require("../services/accountcreation");
+
+// const pool = new Pool({
+//   user: "e1f",
+//   host: "localhost",
+//   database: "myproject",
+//   password: "e1f",
+//   port: 5432,
+// });
 
 const updateuserdetails = async (userid) => {
   const sql = `UPDATE users SET address=$1,index=$2 WHERE userid='${userid}' RETURNING *`;
@@ -26,217 +29,206 @@ const updateuserdetails = async (userid) => {
 };
 // upateuserdetails(5)
 
-const signuporg = async ({ role, name, email, pass, mobilenumber }) => {
+const signuporg = async ({ name, email, password, mobilenumber }) => {
+  const userdata = await insertintousers({
+    email,
+    idnumber: "",
+    mobilenumber,
+    role: "Organisation",
+  });
+
+  // console.log(userdata);
+
+  const sql =
+    "INSERT INTO organisation(userid,name,email,password,mobilenumber,role,address) VALUES($1,$2,$3,$4,$5,$6,$7) RETURNING * ";
+
+  const salt = await bcrypt.genSalt();
+  const hashedPassword = await bcrypt.hash(password, salt);
+
+  const values = [
+    userdata.userid,
+    name,
+    userdata.email,
+    hashedPassword,
+    userdata.mobilenumber,
+    userdata.role,
+    (await accountdetails(userdata.userid)).address,
+  ];
+
   try {
-    let ismobilenumbervalid = await checkmobilenumber(mobilenumber);
-
-    if (ismobilenumbervalid === 1) {
-      return {
-        result: "",
-        error: "Mobile number has already been used",
-      };
-    } else if (ismobilenumbervalid === -1) {
-      return {
-        result: "",
-        error: "Invalid input",
-      };
-    }
-
-    const sql =
-      "INSERT INTO users(role,orgname,email,password,mobilenumber,uuid) VALUES($1,$2,$3,$4,$5,$6) RETURNING * ";
-
-    const salt = await bcrypt.genSalt();
-    const hashedPassword = await bcrypt.hash(pass, salt);
-
-    const internationalmobilenumber = parsePhoneNumber(
-      mobilenumber.toString(),
-      "KE"
-    ).number;
-    role = "organisation";
-    const uniqueid = uuidv4();
-    const values = [
-      role,
-      name,
-      email,
-      hashedPassword,
-      internationalmobilenumber,
-      uniqueid,
-    ];
-
-    try {
-      const res = await pool.query(sql, values);
-      console.log("successful sign up");
-      // let accountdetails = accounts(res.rows[0].userid);
-      await updateuserdetails(res.rows[0].userid);
-      return {
-        result: res.rowCount,
-        error: "",
-      };
-    } catch (error) {
-      let errormessage = error;
-      console.log(error);
-      if (error.constraint == "users_email_key") {
-        return {
-          result: "",
-          error: "Email has already been used",
-        };
-      } else if (error.constraint == "users_mobilenumber_key") {
-        return {
-          result: "",
-          error: "Mobile number has already been used",
-        };
-      } else {
-        return {
-          result: "",
-          error: error.detail,
-        };
-      }
-    }
+    const res = await pool.query(sql, values);
+    return {
+      result: res.rowCount,
+      error: "",
+    };
   } catch (error) {
+    console.log(error);
+
     return {
       result: "",
-      error: "Invalid Input",
+      error: error.detail,
     };
   }
 };
 
 const signupmerchant = async ({
-  role,
   firstname,
   lastname,
   storename,
   email,
-  pass,
+  password,
   mobilenumber,
-  id,
+  idnumber,
 }) => {
+  const userdata = await insertintousers({
+    email,
+    idnumber,
+    mobilenumber,
+    role: "Merchant",
+  });
+
+  const sql =
+    "INSERT INTO merchant(userid,firstname,lastname,storename,idnumber,mobilenumber,email,password,address) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING *";
+  const salt = await bcrypt.genSalt();
+  const hashedPassword = await bcrypt.hash(password, salt);
+
+  const values = [
+    userdata.userid,
+    firstname,
+    lastname,
+    storename,
+    userdata.idnumber,
+    userdata.mobilenumber,
+    userdata.email,
+    hashedPassword,
+    (await accountdetails(userdata.userid)).address,
+  ];
+
   try {
-    let isidvalid = await checkid(id);
-    let ismobilenumbervalid = await checkmobilenumber(mobilenumber);
-    if (isidvalid === 1) {
-      return {
-        result: "",
-        error: "Id has already been used",
-      };
-    } else if (isidvalid === -1) {
-      return {
-        result: "",
-        error: "Invalid input",
-      };
-    }
-    if (ismobilenumbervalid === 1) {
-      return {
-        result: "",
-        error: "Mobile number has already been used",
-      };
-    } else if (ismobilenumbervalid === -1) {
-      return {
-        result: "",
-        error: "Invalid Mobile number ",
-      };
-    }
-
-    const sql =
-      "INSERT INTO users(role,firstname,lastname,storename,idnumber,email,password,mobilenumber,uuid) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING *";
-    const salt = await bcrypt.genSalt();
-    const hashedPassword = await bcrypt.hash(pass, salt);
-    const internationalmobilenumber = parsePhoneNumber(
-      mobilenumber.toString(),
-      "KE"
-    ).number;
-    const uniqueid = uuidv4();
-    role = "merchant";
-
-    const values = [
-      role,
-      firstname,
-      lastname,
-      storename,
-      id,
-      email,
-      hashedPassword,
-      internationalmobilenumber,
-      uniqueid,
-    ];
-
-    try {
-      const res = await pool.query(sql, values);
-      await updateuserdetails(res.rows[0].userid);
-      return {
-        result: res.rowCount,
-        error: "",
-      };
-    } catch (error) {
-      let errormessage = error.toString();
-
-      return {
-        result: "",
-        error: errormessage,
-      };
-    }
+    const res = await pool.query(sql, values);
+    return {
+      result: res.rowCount,
+      error: "",
+    };
   } catch (error) {
     return {
       result: "",
-      error: "Invalid Input",
+      error: error.message,
     };
   }
 };
-const login = async ({ email, pass }) => {
+
+const login = async ({ email, password }) => {
+  // frist sql select role,userid,email from users
+  // second sql select email,password where email=$1 from org union sql select email,password where email=$1 from merchant
   const sql = "SELECT * FROM users WHERE email=$1 ";
   const values = [email];
+  const orgsql = "SELECT email,password FROM organisation WHERE email=$1 ";
+  const merchantsql = "SELECT email,password FROM merchant WHERE email=$1";
   try {
     let res = await pool.query(sql, values);
 
-    if (res.rowCount <= 0) {
-      return {
-        checkPassword: false,
-        email: email,
-        pass: pass,
-        error: "No user found",
-      };
-    } else if (res.rowCount >= 1) {
-      let checkPassword = await bcrypt.compare(pass, res.rows[0].password);
-      let dbemail = res.rows[0].email;
-      let mobilenumber = res.rows[0].mobilenumber;
-      let role = res.rows[0].role;
-      let userid = res.rows[0].userid;
-      let uuid = res.rows[0].uuid;
+    let comparepassword = async (userpassword, password) => {
+      return await bcrypt.compare(password, userpassword);
+    };
+    let userpassword;
 
-      if (checkPassword) {
+    if (res.rowCount === 1) {
+      let { role, email, mobilenumber, userid } = res.rows[0];
+      if (role === "Organisation") {
+        let organisation_result = await pool.query(orgsql, values);
+        let { password } = organisation_result.rows[0];
+        userpassword = password;
+      } else if (role === "Merchant") {
+        let organisation_result = await pool.query(merchantsql, values);
+        let { password } = organisation_result.rows[0];
+        userpassword = password;
+      } else {
         return {
-          checkPassword,
-          email: dbemail,
+          checkPassword: false,
+          email,
+          password,
+          error: "Incorrect credentials",
+        };
+      }
+      if (await comparepassword(userpassword, password)) {
+        return {
+          checkPassword: true,
+          email,
           mobilenumber,
           error: "",
           userid,
           role,
-          uuid,
         };
       } else {
         return {
-          checkPassword,
-          email: email,
-          pass,
+          checkPassword: false,
+          email,
+          password,
           error: "Incorrect credentials",
         };
       }
+    } else {
+      return {
+        checkPassword: false,
+        email,
+        password,
+        error: "Incorrect credentials",
+      };
     }
   } catch (error) {
     console.log(error);
-    return { checkPassword: false, email: email, pass: pass, error: error };
+    return { checkPassword: false, email: email, password, error: error };
   }
 };
 
 const checkid = async (idnumber) => {
+  if (typeof idnumber !== "string") {
+    return -1;
+  }
+  // console.log(idnumber.length);
+  if (idnumber.length < 7 || idnumber.length > 8) {
+    // console.log("caught here");
+    return -1;
+  }
+
+  const sql = "SELECT * FROM users where idnumber=$1";
+  const values = [idnumber];
   try {
-    if (idnumber.toString().length < 7 || idnumber.toString().length > 8) {
+    let res = await pool.query(sql, values);
+    // console.log(res.rowCount);
+    if (res.rowCount >= 1) {
+      return 1;
+    } else {
+      return 0;
+    }
+  } catch (error) {
+    return -1;
+  }
+};
+
+// should check if it is a valid kenyan mobilenumber,check if number has already been used
+// return true if used,false if not, -1 error
+const checkmobilenumber = async (mobilenumber) => {
+  try {
+    if (typeof mobilenumber !== "string") {
+      return 1;
+    }
+
+    // if (mobilenumber === "0" || mobilenumber === "") {
+    //   return 1;
+    // }
+
+    if (!parsePhoneNumber(mobilenumber, "KE").isValid()) {
       return -1;
     }
-    const sql = "SELECT * FROM users where idnumber=$1";
-    const values = [idnumber];
+
+    const realnumber = parsePhoneNumber(mobilenumber, "KE").number;
+    const sql = "SELECT * FROM users where mobilenumber=$1";
+    const values = [realnumber];
+
     try {
       let res = await pool.query(sql, values);
-
       if (res.rowCount >= 1) {
         return 1;
       } else {
@@ -249,31 +241,22 @@ const checkid = async (idnumber) => {
     throw new Error(error.message);
   }
 };
-const checkmobilenumber = async (mobilenumber) => {
-  try {
-    if (mobilenumber === "0" || mobilenumber === "") {
-      return 1;
-    }
+const checkemail = async (email) => {
+  // console.log(email);
+  const sql = "SELECT * FROM users WHERE email=$1";
+  const values = [email];
+  // pool.query(sql).then((data) => console.log(data));
 
-    if (!parsePhoneNumber(mobilenumber.toString(), "KE").isValid()) {
-      return -1;
+  try {
+    let res = await pool.query(sql, values);
+    // console.log(;
+    if (res.rowCount >= 1) {
+      return 1;
     } else {
-      const realnumber = parsePhoneNumber(mobilenumber.toString(), "KE").number;
-      const sql = "SELECT * FROM users where mobilenumber=$1";
-      const values = [realnumber];
-      try {
-        let res = await pool.query(sql, values);
-        if (res.rowCount >= 1) {
-          return 1;
-        } else {
-          return 0;
-        }
-      } catch (error) {
-        return -1;
-      }
+      return 0;
     }
   } catch (error) {
-    throw new Error(error.message);
+    return -1;
   }
 };
 
@@ -284,4 +267,5 @@ module.exports = {
   checkid,
   checkmobilenumber,
   updateuserdetails,
+  checkemail,
 };
