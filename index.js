@@ -27,7 +27,13 @@ app.use(
     resave: true,
   })
 );
-app.use(cors({ credentials: true, origin: "http://localhost:3000" }));
+app.use(
+  cors({
+    credentials: true,
+    origin: "http://localhost:3000",
+    exposedHeaders: ["set-cookie"],
+  })
+);
 app.use(express.urlencoded({ extended: true }));
 
 const allapproutes = require("./routes/routing");
