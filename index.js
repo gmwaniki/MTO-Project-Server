@@ -27,7 +27,7 @@ app.use(
     credentials: true,
     origin: [
       "http://localhost:3000",
-      "https://nervous-pare-0c4a83.netlify.app",
+      "https://lucid-clarke-bacf58.netlify.app/",
     ],
   })
 );
