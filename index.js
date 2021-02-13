@@ -36,13 +36,13 @@ app.use(
     }),
     name: "userscookie",
     secret: "whoami",
-    saveUninitialized: false,
+    saveUninitialized: true,
     cookie: {
       maxAge: 1000 * 60 * 60 * 24,
       httpOnly: true,
       sameSite: "lax",
     },
-    resave: false,
+    resave: true,
     proxy: true,
   })
 );
