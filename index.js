@@ -43,6 +43,7 @@ app.use(
       sameSite: "lax",
     },
     resave: false,
+    proxy: true,
   })
 );
 app.use(express.urlencoded({ extended: true }));
