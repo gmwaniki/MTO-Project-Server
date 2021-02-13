@@ -32,7 +32,7 @@ app.use(
     credentials: true,
     origin: [
       "http://localhost:3000",
-      "https://nervous-pare-0c4a83.netlify.app/",
+      "https://nervous-pare-0c4a83.netlify.app",
     ],
     exposedHeaders: ["set-cookie"],
   })
