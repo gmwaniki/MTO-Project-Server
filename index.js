@@ -22,7 +22,7 @@ app.use(
       maxAge: 1000 * 60 * 60 * 24,
       httpOnly: true,
       sameSite: "lax",
-      secure: true,
+      // secure: true,
     },
     resave: true,
   })
@@ -30,7 +30,10 @@ app.use(
 app.use(
   cors({
     credentials: true,
-    origin: "http://localhost:3000",
+    origin: [
+      "http://localhost:3000",
+      "https://nervous-pare-0c4a83.netlify.app/",
+    ],
     exposedHeaders: ["set-cookie"],
   })
 );
