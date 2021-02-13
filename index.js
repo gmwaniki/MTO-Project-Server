@@ -23,15 +23,6 @@ const pool = new Pool({
 app.set("trust proxy", 1);
 
 app.use(
-  cors({
-    credentials: true,
-    origin: [
-      "http://localhost:3000",
-      "https://lucid-clarke-bacf58.netlify.app/",
-    ],
-  })
-);
-app.use(
   session({
     store: new pgSession({
       pool: pool,
@@ -48,6 +39,17 @@ app.use(
     resave: false,
   })
 );
+
+app.use(
+  cors({
+    credentials: true,
+    origin: [
+      "http://localhost:3000",
+      "https://lucid-clarke-bacf58.netlify.app",
+    ],
+  })
+);
+
 app.use(express.urlencoded({ extended: true }));
 
 const allapproutes = require("./routes/routing");
