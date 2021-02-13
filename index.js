@@ -18,11 +18,10 @@ app.use(
     name: "userscookie",
     secret: "whoami",
     saveUninitialized: false,
-
     cookie: {
       maxAge: 1000 * 60 * 60 * 24,
     },
-    resave: false,
+    resave: true,
   })
 );
 app.use(cors({ credentials: true, origin: "http://localhost:3000" }));
