@@ -20,6 +20,16 @@ const pool = new Pool({
 });
 
 app.use(
+  cors({
+    credentials: true,
+    origin: [
+      "http://localhost:3000",
+      "https://nervous-pare-0c4a83.netlify.app",
+    ],
+    exposedHeaders: ["set-cookie"],
+  })
+);
+app.use(
   session({
     store: new pgSession({
       pool: pool,
@@ -33,16 +43,6 @@ app.use(
       sameSite: "lax",
     },
     resave: false,
-  })
-);
-app.use(
-  cors({
-    credentials: true,
-    origin: [
-      "http://localhost:3000",
-      "https://nervous-pare-0c4a83.netlify.app",
-    ],
-    exposedHeaders: ["set-cookie"],
   })
 );
 app.use(express.urlencoded({ extended: true }));
