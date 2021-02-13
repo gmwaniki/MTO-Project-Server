@@ -24,6 +24,7 @@ async function accountdetails(accountindex) {
   }
   // console.log("Account index", accountindex);
   let testaddress = wallet?.getAddress(accountindex);
+  
 
   const address = testaddress || Object.keys(wallet.wallets)[0];
   // console.log("The address", address);
