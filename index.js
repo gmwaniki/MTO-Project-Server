@@ -34,6 +34,6 @@ const webhookroutes = require("./routes/webhooks");
 app.use("/webhook", webhookroutes);
 
 let server = app.listen(port, () => {
-  console.log("listening on port 3636");
+  console.log(`listening on port ${port}`);
 });
 module.exports = server;
