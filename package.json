@@ -5,7 +5,7 @@
   "main": "index.js",
   "dependencies": {
     "@opengsn/gsn": "^2.1.0",
-    "@truffle/hdwallet-provider": "^1.2.0",
+    "@truffle/hdwallet-provider": "^1.2.2",
     "abi-decoder": "^2.4.0",
     "africastalking": "^0.5.3",
     "bcrypt": "^5.0.0",
@@ -16,11 +16,11 @@
     "express": "^4.17.1",
     "express-session": "^1.17.1",
     "express-validator": "^6.9.2",
-    "libphonenumber-js": "^1.9.8",
+    "libphonenumber-js": "^1.9.11",
     "nanoid": "^3.1.20",
     "pg": "^8.5.1",
-    "stripe": "^8.132.0",
-    "web3": "^1.3.1"
+    "stripe": "^8.135.0",
+    "web3": "^1.3.4"
   },
   "scripts": {
     "test": "NODE_ENV=test mocha --exit --no-timeout",
@@ -31,13 +31,13 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "chai": "^4.2.0",
+    "chai": "^4.3.0",
     "chai-http": "^4.3.0",
-    "mocha": "^8.2.1",
+    "mocha": "^8.3.0",
     "morgan": "^1.10.0",
     "nodemon": "^2.0.7"
   },
   "engines": {
-    "node": "12.20.2"
+    "node": "14.15.3"
   }
 }
