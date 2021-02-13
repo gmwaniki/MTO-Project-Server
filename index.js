@@ -42,7 +42,7 @@ app.use(
       httpOnly: true,
       sameSite: "lax",
     },
-    resave: true,
+    resave: false,
   })
 );
 app.use(express.urlencoded({ extended: true }));
