@@ -20,6 +20,8 @@ const pool = new Pool({
   ssl: process.env.NODE_ENV == "production" ? true : false,
 });
 
+app.set("trust proxy", 1);
+
 app.use(
   cors({
     credentials: true,
@@ -36,11 +38,12 @@ app.use(
     }),
     name: "userscookie",
     secret: "whoami",
-    saveUninitialized: false,
+    saveUninitialized: true,
     cookie: {
       maxAge: 1000 * 60 * 60 * 24,
       httpOnly: true,
       sameSite: "lax",
+      secure: true,
     },
     resave: false,
   })
