@@ -27,7 +27,6 @@ app.use(
       "http://localhost:3000",
       "https://nervous-pare-0c4a83.netlify.app",
     ],
-    exposedHeaders: ["set-cookie"],
   })
 );
 app.use(
@@ -43,7 +42,7 @@ app.use(
       httpOnly: true,
       sameSite: "lax",
     },
-    resave: false,
+    resave: true,
   })
 );
 app.use(express.urlencoded({ extended: true }));
