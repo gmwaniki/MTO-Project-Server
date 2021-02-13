@@ -30,6 +30,7 @@ const {
 const { sendtoarecipient } = require("../models/organisationmodel");
 
 const checksession = (req, res, next) => {
+  console.log("This is ", req.session);
   if (!req.session.userid) {
     res.status(401).json({ message: "Please login" });
   } else {
