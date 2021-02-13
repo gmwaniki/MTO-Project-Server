@@ -5,6 +5,7 @@ const pgSession = require("connect-pg-simple")(session);
 const { Pool } = require("pg");
 const port = process.env.PORT || 3636;
 const cors = require("cors");
+require("dotenv").config();
 if (process.env.NODE_ENV == "dev") {
   const morgan = require("morgan");
   app.use(morgan("dev"));
@@ -36,14 +37,13 @@ app.use(
     }),
     name: "userscookie",
     secret: "whoami",
-    saveUninitialized: true,
+    saveUninitialized: false,
     cookie: {
       maxAge: 1000 * 60 * 60 * 24,
       httpOnly: true,
       sameSite: "lax",
     },
-    resave: true,
-    proxy: true,
+    resave: false,
   })
 );
 app.use(express.urlencoded({ extended: true }));
