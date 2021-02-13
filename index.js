@@ -5,7 +5,7 @@ const pgSession = require("connect-pg-simple")(session);
 const pool = require("./services/dbconnection").pool;
 const port = process.env.PORT || 3636;
 const cors = require("cors");
-if (process.env.NODE_ENV == "dev") {
+if (process.env.NODE_ENV == "dev" ||process.env.NODE_ENV == "production") {
   const morgan = require("morgan");
   app.use(morgan("dev"));
 }
